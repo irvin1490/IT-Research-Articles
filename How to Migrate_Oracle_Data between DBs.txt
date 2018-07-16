@@ -1,0 +1,73 @@
+Four Methods of Oracle Database Migration to a Different Schema Combining Two Databases
+
+DATABASE LINK (Migration Method)
+
+Use Oracle's Database link for accessing remote objects including tables and views, a database link being a schema object in one database that enables to access objects on another database. This is Oracle's distributed database management system architecture allowing access data in remote databases using Oracle Net and an Oracle server. Create dblink as below:
+
+
+ CREATE [SHARED] [PUBLIC] DATABASE LINK dblink
+ [ CONNECT TO { CURRENT_USER | user IDENTIFIED BY password [authenticated_clause] }
+ | authenticated_clause
+ ] 
+ [USING 'connect_string'];
+
+ After this, in SQL statements, can refer to a table or view on the other database, by appending @dblink to the table or view name.
+ Eg: UPDATE employees@remote
+ SET salary=salary*1.1
+ WHERE last_name = 'Baer';
+ /*@remote is the dblink*/ 
+
+
+ Alternative Method 1:
+
+ 1. Create another server instance, installing Oracle RDBMS.
+ 2. Create only a single database. 
+ 3. Create schemas to hold data from the two seperate databases.
+ 4. Export structures only from production (no data).
+ 5. Import structures into new server instance Oracle RDBMS for each schema.
+ 6. Script the data load from production Oracle system into new Oracle instance using Direct path insert which will be quicker than a full data import. 
+ 7. Perform a backup. 
+
+
+Subsequent or simultaneously may need to:
+Grant Administrative Privileges
+Grant User Privileges
+May need to check for unique key violations.
+May need to check sequences.
+
+Alternative Method 2:
+ 1. Create a staging area with temporary tables to serve as
+    intermediate solution between source and target
+
+Alternative Method 3: USing SQL*Plus
+use dbms_output to get data into the source database into an array. And then use the array in your select clause. This is how it would work in sqlplus
+VARIABLE cur REFCURSOR
+
+declare t DBMSOUTPUT_LINESARRAY;
+    numlines integer;
+    c sys_refcursor;
+begin
+  dbms_output.enable;
+  dbms_output.put_line(100);
+  dbms_output.put_line(116);
+  -- add more object ids ....
+  dbms_output.get_lines(t,numlines);
+  open :cur for select object_id,object_name 
+   from all_objects o where o.object_id in 
+   (select * from table(t));
+end;
+/
+
+print cur
+
+result:
+PL/SQL procedure successfully completed.
+
+OBJECT_ID OBJECT_NAME
+
+       100 ORA$BASE
+       116 DUAL
+
+Spool the query result into a file and load it into your target db.
+
+

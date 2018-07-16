@@ -1,0 +1,442 @@
+Is VBA an Object Oriented language?
+
+
+https://www.webopedia.com/TERM/O/object_oriented_programming_OOP.html
+
+
+Common Vocabulary:
+
+•Abstraction: The process of picking out (abstracting) common features of objects and procedures.
+•Class: A category of objects. The class defines all the common properties of the different objects that belong to it.
+•Encapsulation: The process of combining elements to create a new entity. A procedure is a type of encapsulation because it combines a series of computer instructions.
+•Information hiding: The process of hiding details of an object or function. Information hiding is a powerful programming technique because it reduces complexity.
+•Inheritance: a feature that represents the "is a" relationship between different classes.
+•Interface: the languages and codes that the applications use to communicate with each other and with the hardware.
+•Messaging: Message passing is a form of communication used in parallel programming and object-oriented programming.
+•Object: a self-contained entity that consists of both data and procedures to manipulate the data.
+•Polymorphism: A programming language's ability to process objects differently depending on their data type or class.
+•Procedure: a section of a program that performs a specific task.
+
+https://stackoverflow.com/search?q=%5Bvba%5DImplements
+
+Visual Basic for Applications (VBA) is an event-driven, object-oriented programming language for writing macros, used for the entire Office suite as well as other applications
+
+http://www.cpearson.com/excel/Implements.aspx
+
+VBA began life as a simple scripting language that allowed you to create simple macros to automate frequently performed tasks and to write functions that you could call from worksheet cells. In the 1997 release, MS upgraded VBA to include some object oriented programming features, as well as adding the VBA Editor component. To be sure, VBA is not a full object-oriented programming language, as it lacks important OOP features such as inheritance and function overloading. However, it does include two very important OOP features: Classes and Interfaces. 
+
+----------------------------------------------------------------------------------------------------------------
+
+https://excelvirtuoso.net/2018/01/18/vba-inheritance/?subscribe=success#blog_subscription-9
+
+Does VBA Permit Inheritance? 
+Short answer: no; long answer: like most things in VBA, there’s a way to hack it.
+
+-------------------------------------------------------------------------------------------------------------------
+
+VBA classes do not intrinsically support inheritance. That is, there’s no simple setup to assign a base class to a derived class (in other languages, inheritance can be obtained with one line of code). What VBA does permit is the storage of another class within a class. Through this storage, we can then access the properties of the stored “derived” class and force them to transfer through properties of the base class. This does require some setup — discussed in the following sections.
+
+https://stackoverflow.com/questions/31858094/is-vba-an-oop-language-and-does-it-support-polymorphism
+
+VBA is object based, allowing you to define classes and create instances of objects but it lacks the features that would normally be associated with a fully fledged OOP language, for example:
+
+Encapsulation and abstraction: VBA provides this to an extent. Classes can be kept private with public interfaces defined, however there is no provision for constructors within classes. Classes have a Class Inititalize event which can do some construction but cannot take arguments. Passing arguments would require a public factory function workarounds are still required to create a constructor-style design pattern.
+
+Inheritance: Doesn't really exist in VBA but can be almost replicated 
+
+Polymorphism: Can be achieved to an extent through interfaces (using Implements) although the ability to overload functions (for example) doesn't exist and each "overload" would technically require a unique function name. You can work around this by passing in an object as the only parameter to a function or sub and vary the procedure depending on the values of the properties.
+
+OOP is sitting on 4 "pillars":
+
+ Abstraction - Abstracting logic and concepts can easily be done by defining objects in class modules. Strictly speaking, abstraction is also achieved by using meaningful identifiers and extracting procedural code into methods (class members).
+
+Here's an example of a procedure written in VBA that demonstrates abstraction:
+
+Public Sub Test(ByVal checkin As Date, ByVal checkout As Date, ByVal custType As CustomerType)
+    Dim finder As New HotelFinder
+    InitializeHotels finder
+    Debug.Print finder.FindCheapestHotel(checkin, checkout, custType)
+End Sub
+
+It's easy to tell what this Test procedure does at a glance, because the abstraction level is very high: the implementation details are abstracted away into more specialized objects and methods.
+
+ Encapsulation - Classes can have private fields exposed by properties; classes can be made PublicNotCreatable, effectively exposing types to other VBA projects - and with a little bit of effort (by exporting the class module, opening it in your favorite text editor, manually editing class attributes, and re-importing the module), you can achieve actual read-only types. The fact that there are no parameterized constructors is irrelevant - just write a factory method that takes all the parameters you like and return an instance. This is COM, and COM likes factories anyway.
+
+Here's an example of how the HotelFinder class from the above snippet encapsulates a Collection object and only exposes it through a Property Get accessor - code outside this class simply cannot Set this reference, it's encapsulated:
+
+Private Type TFinder
+    Hotels As Collection
+End Type
+
+Private this As TFinder
+
+Public Property Get Hotels() As Collection
+    Set Hotels = this.Hotels
+End Property
+ 
+
+Private Sub Class_Initialize()
+    Set this.Hotels = New Collection
+End Sub
+ 
+
+Private Sub Class_Terminate()
+    Set this.Hotels = Nothing
+End Sub
+
+ 
+Polymorphism - Implements lets you implement abstract interfaces (and concrete classes, too), and then you can write code against an ISomething abstraction that can just as well be a Foo or a Bar (given Foo and Bar both implement ISomething) - and all the code ever needs to see is ISomething. Method overloading is a language feature that VBA lacks, but overloading has nothing to do with polymorphism, which is the ability to present the same interface for differing underlying forms (data types).
+
+Here's an example of applied polymorphism - the LogManager.Register method is happy to work with any object that implements the ILogger interface; here a DebugLogger and a FileLogger - two wildly different implementations of that interface, are being registered; when LogManager.Log(ErrorLevel, Err.Description) is invoked later, the two implementations will each do their own thing; DebugLogger will output to the immediate toolwindow, and FileLogger will write an entry into a specified log file:
+
+LogManager.Register DebugLogger.Create("MyLogger", DebugLevel)
+
+LogManager.Register Filelogger.Create("TestLogger", ErrorLevel, "C:\Dev\VBA\log.txt")
+
+ Inheritance - VBA does not let you derive a type from another: inheritance is not supported.
+
+-------------------------------------------------------------------------------------------------------------------
+
+https://www.microsoftpressstore.com/articles/article.aspx?p=2225071&seqNum=2
+
+Adding Functionality with Classes in Microsoft VBA 
+
+By Andrew Couch
+
+Creating a Hierarchy of Classes
+
+In this example, you look at creating a hierarchy of classes, which demonstrates the ability of classes to be used as building blocks for improving the design in managing data objects. The example involves a business problem for which the classes need to perform complex calculations (although you will stick to simple calculations in the example).
+
+Suppose that you have analyzed an insurance company’s business, the result of which revealed that the company sells a large number of different insurance products, but you noticed that there are common features in the products. Often, one type of policy only differs from another in a small number of ways. The task is to build an Access application that assists with generating the policy documents and performing appropriate calculations for the different policies.
+
+Creating a Base Class
+
+The first task is to identify common features to all policies as well as the most standard calculations that a policy would require to perform. This involves creating a class, which will serve as the base class. In the following code, this is called clsPolicy.
+
+From the project window in the VBA Editor, create a class module, and then save the module with the name clsPolicy, as demonstrated in the following code:
+
+Option Compare Database
+Option Explicit
+
+ 
+
+' clsPolicy is the base class which has common features
+
+' required in other classes
+
+ 
+
+Dim p_MonthlyPremium As Currency
+Public Property Get MonthlyPremium() As Currency
+    MonthlyPremium = p_MonthlyPremium
+End Property
+ 
+
+Public Property Let MonthlyPremium(ByVal MonthlyPremium As Currency)
+    p_MonthlyPremium = MonthlyPremium
+End Property
+
+ 
+
+Public Function CalculateAnnualPolicyValue() As Currency
+    CalculateAnnualPolicyValue = p_MonthlyPremium * 12
+End Function
+
+This class can then be tested by using the following code:
+Sub modInsurance_Policy()
+
+    ' create a Policy from clsPolicy
+
+    Dim Policy As New clsPolicy
+
+    Policy.MonthlyPremium = 10
+
+    ' Expect 120
+
+    Debug.Print Policy.CalculateAnnualPolicyValue()
+
+    Set Policy = Nothing
+End Sub
+ 
+
+Derived Classes
+
+With the basic insurance policy class created, you can now create several other classes that will all use some of the base class features. This involves creating a class, which will serve as the derived class, and in the following code is called clsHomePolicy, being derived from the base class clsPolicy. The term derived is used because the class is in some way related or derived from the base class:
+
+Option Compare Database
+Option Explicit
+
+ 
+
+' clsHomePolicy uses clsPolicy
+Dim p_Policy As clsPolicy
+ 
+
+Private Sub Class_Initialize()
+    Set p_Policy = New clsPolicy
+End Sub
+
+Private Sub Class_Terminate()
+    Set p_Policy = Nothing
+End Sub
+ 
+
+Public Property Get MonthlyPremium() As Currency
+    MonthlyPremium = p_Policy.MonthlyPremium
+End Property
+
+
+Public Property Let MonthlyPremium(ByVal MonthlyPremium As Currency)
+    p_Policy.MonthlyPremium = MonthlyPremium
+End Property
+
+ 
+Public Function CalculateAnnualPolicyValue() As Currency
+    CalculateAnnualPolicyValue = p_Policy.CalculateAnnualPolicyValue() + 50
+End Function
+
+
+The first derived class, clsHomePolicy, contains a base class object, clsPolicy, so you need to have initialization and termination events to create and dispose of the base class object.
+
+The clsHomePolicy is only loosely tied to clsPolicy, which means that you need to add all the required properties and methods into the new class. But if you look at the CalculateAnnualPolicyValue method, you will see how it can take advantage of the calculation in the base class.
+
+INSIDE OUT: Inheritance and polymorphism in classes
+
+Note that we are using the term derived here in a very loose manner. Many OOP languages incorporate the concept of inheritance, which means truly deriving classes, and they use the term polymorphism for how derived classes can implement variations on methods available through base classes.
+
+VBA does not support direct inheritance or explicit polymorphism, but you can use the approach described here to create structures that offer some of these characteristics.
+
+Another OOP term is multiple inheritance, which means inheriting from more than one base class; by embedding other classes using this technique, we can also form structures that behave in some respects like those having multiple inheritance. The techniques used here to produce a hierarchy can also be described by the term wrapper, where we wrap around one class for the purpose of extending or changing its functionality.
+
+As is illustrated in the code that follows, you can now define two additional classes, one called clsSpecialHomePolicy, which is derived from clsHomePolicy, and the other, called clsCarPolicy, is derived from clsPolicy (you can view the code in the sample database):
+
+Option Compare Database
+Option Explicit
+ 
+
+' clsSpecialHomePolicy
+
+Dim p_Policy As clsHomePolicy
+
+ 
+Private Sub Class_Initialize()
+
+    Set p_Policy = New clsHomePolicy
+End Sub
+
+Private Sub Class_Terminate()
+
+    Set p_Policy = Nothing
+End Sub
+
+ 
+
+Public Property Get MonthlyPremium() As Currency
+
+    MonthlyPremium = p_Policy.MonthlyPremium
+End Property
+
+ 
+
+Public Property Let MonthlyPremium(ByVal MonthlyPremium As Currency)
+
+    p_Policy.MonthlyPremium = MonthlyPremium
+End Property
+
+ 
+
+Public Function CalculateAnnualPolicyValue() As Currency
+
+    CalculateAnnualPolicyValue = p_Policy.CalculateAnnualPolicyValue() + 100
+End Function
+
+These classes can be tested with the following code:
+Sub modInsurance_Policy()
+
+    ' create a Policy from clsPolicy
+
+    Dim Policy As New clsPolicy
+
+    Policy.MonthlyPremium = 10
+
+    ' Expect 120
+
+    Debug.Print Policy.CalculateAnnualPolicyValue()
+
+    Set Policy = Nothing
+
+ 
+
+    ' create a HomePolicy
+
+    Dim HomePolicy As New clsHomePolicy
+
+    HomePolicy.MonthlyPremium = 10
+
+    ' Expect 120+50 = 170
+
+    Debug.Print HomePolicy.CalculateAnnualPolicyValue()
+
+    Set HomePolicy = Nothing
+
+ 
+
+    ' create a SpecialHomePolicy
+
+    Dim SpecialHomePolicy As New clsSpecialHomePolicy
+
+    SpecialHomePolicy.MonthlyPremium = 10
+
+    ' Expect 120+50+100 = 270
+
+    Debug.Print SpecialHomePolicy.CalculateAnnualPolicyValue()
+
+    Set SpecialHomePolicy = Nothing
+
+ 
+
+    ' create a CarPolicy
+
+    Dim CarPolicy As New clsCarPolicy
+
+    CarPolicy.MonthlyPremium = 10
+
+    ' Expect 120+80 = 200
+
+    Debug.Print CarPolicy.CalculateAnnualPolicyValue()
+
+    Set CarPolicy = Nothing
+End Sub
+
+------------------------------------------------------------------------------------------------------------------------
+
+https://www.theregister.co.uk/2017/02/02/our_strategy_for_visual_basic_has_shifted_microsoft_to_focus_on_core_scenarios/
+
+Visual Basic  (for comparative purposes--having more OOP)
+
+Visual Basic evolved with Windows, acquiring a 32-bit compiler and an option for compiling native executables, until the release of Visual Basic 6.0 in 1998. Although still very popular, by then VB was losing some of its shine. Object orientation enthusiasts disliked the fact that VB only did interface implementation, and not full class inheritance.
+
+https://en.wikipedia.org/wiki/Visual_Basic
+
+Visual Basic is a third-generation event-driven programming language and integrated development environment (IDE) from Microsoft for its Component Object Model (COM) programming model first released in 1991 and declared legacy during 2008. Microsoft intended Visual Basic to be relatively easy to learn and use.[1][2] Visual Basic was derived from BASIC and enables the rapid application development (RAD) of graphical user interface (GUI) applications, access to databases using Data Access Objects, Remote Data Objects, or ActiveX Data Objects, and creation of ActiveX controls and objects.
+
+VB6 is referred to as an "Object-Based" programming language. The ability to create your own class objects and use them in your program makes it seem/feel like its an OOP, But the lack of Inheritance, Polymorphism and Operator Overloading, is what makes it a few steps short of a true OOP...Jun 26, 2009
+
+Implementation no, Interface, yes
+
+You're right, strictly speaking, VB6 doesn't support inheritance, in that an object can't inherit the implementation of another object (that is how the first object does it's work). What VB6 objects can do is inherit interfaces, which are groups of method signatures. This article has a little bit of info on how that works from a standpoint of version control.
+
+https://docs.microsoft.com/en-us/dotnet/visual-basic/programming-guide/language-features/objects-and-classes/inheritance-basics
+
+Inheritance Basics (Visual Basic)
+
+The Inherits statement is used to declare a new class, called a derived class, based on an existing class, known as a base class. Derived classes inherit, and can extend, the properties, methods, events, fields, and constants defined in the base class. The following section describes some of the rules for inheritance, and the modifiers you can use to change the way classes inherit or are inherited: 
+
+By default, all classes are inheritable unless marked with the NotInheritable keyword. Classes can inherit from other classes in your project or from classes in other assemblies that your project references. 
+
+Unlike languages that allow multiple inheritance, Visual Basic allows only single inheritance in classes; that is, derived classes can have only one base class. Although multiple inheritance is not allowed in classes, classes can implement multiple interfaces, which can effectively accomplish the same ends. 
+
+To prevent exposing restricted items in a base class, the access type of a derived class must be equal to or more restrictive than its base class. For example, a Public class cannot inherit a Friend or a Private class, and a Friend class cannot inherit a Private class. 
+
+Inheritance Modifiers
+
+Visual Basic introduces the following class-level statements and modifiers to support inheritance: 
+
+Inherits statement — Specifies the base class. 
+
+NotInheritable modifier — Prevents programmers from using the class as a base class. 
+
+MustInherit modifier — Specifies that the class is intended for use as a base class only. Instances of MustInherit classes cannot be created directly; they can only be created as base class instances of a derived class. (Other programming languages, such as C++ and C#, use the term abstract class to describe such a class.) 
+
+Overriding Properties and Methods in Derived Classes
+
+By default, a derived class inherits properties and methods from its base class. If an inherited property or method has to behave differently in the derived class it can be overridden. That is, you can define a new implementation of the method in the derived class. The following modifiers are used to control how properties and methods are overridden: 
+
+Overridable — Allows a property or method in a class to be overridden in a derived class. 
+
+Overrides — Overrides an Overridable property or method defined in the base class. 
+
+NotOverridable — Prevents a property or method from being overridden in an inheriting class. By default, Public methods are NotOverridable. 
+
+MustOverride — Requires that a derived class override the property or method. When the MustOverride keyword is used, the method definition consists of just the Sub, Function, or Property statement. No other statements are allowed, and specifically there is no End Sub or End Function statement. MustOverride methods must be declared in MustInherit classes. 
+
+Suppose you want to define classes to handle payroll. You could define a generic Payroll class that contains a RunPayroll method that calculates payroll for a typical week. You could then use Payroll as a base class for a more specialized BonusPayroll class, which could be used when distributing employee bonuses. 
+
+The BonusPayroll class can inherit, and override, the PayEmployee method defined in the base Payroll class. 
+
+The following example defines a base class, Payroll, and a derived class, BonusPayroll, which overrides an inherited method, PayEmployee. A procedure, RunPayroll, creates and then passes a Payroll object and a BonusPayroll object to a function, Pay, that executes the PayEmployee method of both objects. 
+
+VB
+Copy
+Const BonusRate As Decimal = 1.45D
+Const PayRate As Decimal = 14.75D
+ 
+
+Class Payroll
+    Overridable Function PayEmployee( 
+
+        ByVal HoursWorked As Decimal, 
+
+        ByVal PayRate As Decimal) As Decimal
+ 
+        PayEmployee = HoursWorked * PayRate
+
+    End Function
+End Class
+
+
+Class BonusPayroll
+    Inherits Payroll
+    Overrides Function PayEmployee( 
+        ByVal HoursWorked As Decimal, 
+        ByVal PayRate As Decimal) As Decimal
+
+        ' The following code calls the original method in the base 
+
+        ' class, and then modifies the returned value.
+        PayEmployee = MyBase.PayEmployee(HoursWorked, PayRate) * BonusRate
+    End Function
+End Class
+ 
+
+Sub RunPayroll()
+    Dim PayrollItem As Payroll = New Payroll
+    Dim BonusPayrollItem As New BonusPayroll
+    Dim HoursWorked As Decimal = 40
+
+
+    MsgBox("Normal pay is: " & 
+        PayrollItem.PayEmployee(HoursWorked, PayRate))
+    MsgBox("Pay with bonus is: " & 
+       BonusPayrollItem.PayEmployee(HoursWorked, PayRate))
+
+End Sub
+
+---------------------------------------------------------------------------------------------------------------------------
+
+VB.NET
+
+In 2001 Microsoft released its .NET Framework development platform complete with a new language, called C#, as well as an updated version of VB, called Visual Basic .NET. "It's a little bit more different than Visual Basic than we would like it to be, but we needed to do that in order to give you the important advances that are in the product," said then-CEO Steve Ballmer. In a nutshell, Microsoft both fixed and broke the language. Fixed, in that it now supported class inheritance and acquired a ton of new capabilities via the Framework libraries, including the ASP.NET web framework. Broke, in that it was incompatible with VB 6.0 as well as requiring a larger, slower runtime. Porting existing applications was hard.
+
+---------------------------------------------------------------------------------------------------------------------------
+
+https://www.webopedia.com/TERM/C/Component_Object_Model.html
+
+Component Object Model
+
+
+https://docs.microsoft.com/en-us/windows/desktop/com/the-component-object-model
+
+The Component Object Model
+
+The Microsoft Component Object Model (COM) is a platform-independent, distributed, object-oriented system for creating binary software components that can interact. COM is the foundation technology for Microsoft's OLE (compound documents), ActiveX (Internet-enabled components), as well as others.
+
+To understand COM (and therefore all COM-based technologies), it is crucial to understand that it is not an object-oriented language but a standard. Nor does COM specify how an application should be structured; language, structure, and implementation details are left to the application developer. Rather, COM specifies an object model and programming requirements that enable COM objects (also called COM components, or sometimes simply objects) to interact with other objects. These objects can be within a single process, in other processes, and can even be on remote computers. They can be written in different languages, and they may be structurally quite dissimilar, which is why COM is referred to as a binary standard; a standard that applies after a program has been translated to binary machine code.
+
+The only language requirement for COM is that code is generated in a language that can create structures of pointers and, either explicitly or implicitly, call functions through pointers. Object-oriented languages such as C++ and Smalltalk provide programming mechanisms that simplify the implementation of COM objects, but languages such as C, Java, and VBScript can be used to create and use COM objects.
+
+COM defines the essential nature of a COM object. In general, a software object is made up of a set of data and the functions that manipulate the data. A COM object is one in which access to an object's data is achieved exclusively through one or more sets of related functions. These function sets are called interfaces, and the functions of an interface are called methods. Further, COM requires that the only way to gain access to the methods of an interface is through a pointer to the interface.
+
+Besides specifying the basic binary object standard, COM defines certain basic interfaces that provide functions common to all COM-based technologies, and it provides a small number of functions that all components require. COM also defines how objects work together over a distributed environment and has added security features to help provide system and component integrity.
+
+-----------------------------------------------------------------------------------------------------------------------------
